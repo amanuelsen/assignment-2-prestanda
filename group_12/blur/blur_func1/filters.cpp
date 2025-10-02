@@ -23,86 +23,92 @@ namespace Filter
     }
 
     Matrix blur(Matrix m, const int radius)
+{
+    Matrix scratch{PPM::max_dimension};
+    auto dst{m};
+
+    // Precompute weights once and not within the loops
+    double w[Gauss::max_radius]{};
+    Gauss::get_weights(radius, w);
+    
+
+    // Cache sizes to avoid repeated function calls 
+    const auto x_size = dst.get_x_size();
+    const auto y_size = dst.get_y_size();
+
+    // First pass: horizontal blur for better cache locality according to how array is stored in memory
+    for (auto y = 0; y < y_size; y++)
     {
-        Matrix scratch{PPM::max_dimension};
-        auto dst{m};
-
-        for (auto x{0}; x < dst.get_x_size(); x++)
+        for (auto x = 0; x < x_size; x++)
         {
-            for (auto y{0}; y < dst.get_y_size(); y++)
+            double r = w[0] * dst.r(x, y);
+            double g = w[0] * dst.g(x, y);
+            double b = w[0] * dst.b(x, y);
+            double n = w[0];
+
+            for (auto wi = 1; wi <= radius; wi++)
             {
-                double w[Gauss::max_radius]{};
-                Gauss::get_weights(radius, w);
-
-                // unsigned char Matrix::r(unsigned x, unsigned y) const
-                // {
-                //     return R[y * x_size + x];
-                // }
-
-                auto r{w[0] * dst.r(x, y)}, g{w[0] * dst.g(x, y)}, b{w[0] * dst.b(x, y)}, n{w[0]};
-
-                for (auto wi{1}; wi <= radius; wi++)
+                auto wc = w[wi];
+                auto x2 = x - wi;
+                if (x2 >= 0)
                 {
-                    auto wc{w[wi]};
-                    auto x2{x - wi};
-                    if (x2 >= 0)
-                    {
-                        r += wc * dst.r(x2, y);
-                        g += wc * dst.g(x2, y);
-                        b += wc * dst.b(x2, y);
-                        n += wc;
-                    }
-                    x2 = x + wi;
-                    if (x2 < dst.get_x_size())
-                    {
-                        r += wc * dst.r(x2, y);
-                        g += wc * dst.g(x2, y);
-                        b += wc * dst.b(x2, y);
-                        n += wc;
-                    }
+                    r += wc * dst.r(x2, y);
+                    g += wc * dst.g(x2, y);
+                    b += wc * dst.b(x2, y);
+                    n += wc;
                 }
-                scratch.r(x, y) = r / n;
-                scratch.g(x, y) = g / n;
-                scratch.b(x, y) = b / n;
-            }
-        }
-
-        for (auto x{0}; x < dst.get_x_size(); x++)
-        {
-            for (auto y{0}; y < dst.get_y_size(); y++)
-            {
-                double w[Gauss::max_radius]{};
-                Gauss::get_weights(radius, w);
-
-                auto r{w[0] * scratch.r(x, y)}, g{w[0] * scratch.g(x, y)}, b{w[0] * scratch.b(x, y)}, n{w[0]};
-
-                for (auto wi{1}; wi <= radius; wi++)
+                x2 = x + wi;
+                if (x2 < x_size)
                 {
-                    auto wc{w[wi]};
-                    auto y2{y - wi};
-                    if (y2 >= 0)
-                    {
-                        r += wc * scratch.r(x, y2);
-                        g += wc * scratch.g(x, y2);
-                        b += wc * scratch.b(x, y2);
-                        n += wc;
-                    }
-                    y2 = y + wi;
-                    if (y2 < dst.get_y_size())
-                    {
-                        r += wc * scratch.r(x, y2);
-                        g += wc * scratch.g(x, y2);
-                        b += wc * scratch.b(x, y2);
-                        n += wc;
-                    }
+                    r += wc * dst.r(x2, y);
+                    g += wc * dst.g(x2, y);
+                    b += wc * dst.b(x2, y);
+                    n += wc;
                 }
-                dst.r(x, y) = r / n;
-                dst.g(x, y) = g / n;
-                dst.b(x, y) = b / n;
             }
+            scratch.r(x, y) = r / n;
+            scratch.g(x, y) = g / n;
+            scratch.b(x, y) = b / n;
         }
-
-        return dst;
     }
+
+
+    for (auto x = 0; x < x_size; x++)
+    {
+        for (auto y = 0; y < y_size; y++)
+        {
+            double r = w[0] * scratch.r(x, y);
+            double g = w[0] * scratch.g(x, y);
+            double b = w[0] * scratch.b(x, y);
+            double n = w[0];
+
+            for (auto wi = 1; wi <= radius; wi++)
+            {
+                auto wc = w[wi];
+                auto y2 = y - wi;
+                if (y2 >= 0)
+                {
+                    r += wc * scratch.r(x, y2);
+                    g += wc * scratch.g(x, y2);
+                    b += wc * scratch.b(x, y2);
+                    n += wc;
+                }
+                y2 = y + wi;
+                if (y2 < y_size)
+                {
+                    r += wc * scratch.r(x, y2);
+                    g += wc * scratch.g(x, y2);
+                    b += wc * scratch.b(x, y2);
+                    n += wc;
+                }
+            }
+            dst.r(x, y) = r / n;
+            dst.g(x, y) = g / n;
+            dst.b(x, y) = b / n;
+        }
+    }
+
+    return dst;
+}
 
 }
