@@ -15,6 +15,6 @@ done
 
 # Run valgrind only after all timing is done, for all images
 
-echo "Running valgrind (callgrind) on im1"
-valgrind --tool=callgrind ./blur 15 "data/im1.ppm" "output_im1.ppm"
+echo "Running valgrind (callgrind) on im4"
+valgrind --tool=callgrind ./blur 15 "data/im4.ppm" "output_im4.ppm"
 echo "-----------------------------------------"    
