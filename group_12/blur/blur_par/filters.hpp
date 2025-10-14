@@ -18,9 +18,12 @@ namespace Filter
 
         void get_weights(int n, double *weights_out);
     }
+    // Thread data structure for passing parameters to threads, for passing the data to each thread
+   
+    Matrix blur(Matrix m, const int radius, const int threadscount);
 
-    Matrix blur(Matrix m, const int radius);
+};
 
-}
+
 
 #endif

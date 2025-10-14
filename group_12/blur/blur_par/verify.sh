@@ -1,31 +1,27 @@
 #!/bin/bash
 
-echo "NOTE: this script relies on the blur binary to exist"
+echo "NOTE: this script relies on the binaries blur_seq and blur_par to exist"
 
 status=0
 red=$(tput setaf 1)
-green=$(tput setaf 2)
 reset=$(tput sgr0)
 
-# Create output directory if it doesn't exist
-mkdir -p data_o
-
-for image in im1 im2 im3 im4
+for thread in 1 2 4 8 16 32
 do
-    # Run blur on input image and save to temporary output
-    ./blur 15 "data/$image.ppm" "data_o/blur_${image}.ppm"
+    for image in im1 im2 im3 im4
+    do
+        # Run parallel blur binary with specified threads
+        ./blur 15 "data/$image.ppm" "./data_o/blur_${image}_par.ppm" $thread
 
-    # Compare with reference output
-    if ! cmp -s "data_o/${image}_seq.ppm" "data_o/blur_${image}.ppm"
-    then
-        echo "${red}Error: Incongruent output data detected when blurring image $image.ppm${reset}"
-        status=1
-    else
-        echo "${green}Successfully verified $image.ppm${reset}"
-    fi
+        # Compare parallel output with sequential blurred image
+        if ! cmp -s "./data_o/${image}_seq.ppm" "./data_o/blur_${image}_par.ppm"
+        then
+            echo "${red}Error: Incongruent output data detected when blurring image $image.ppm with $thread thread(s)${reset}"
+            status=1
+        fi
 
-    # Cleanup temporary output
-    rm -f "data_o/blur_${image}.ppm"
+        rm "./data_o/blur_${image}_par.ppm"
+    done
 done
 
 exit $status
