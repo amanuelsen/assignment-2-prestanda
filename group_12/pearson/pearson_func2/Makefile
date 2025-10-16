@@ -1,7 +1,8 @@
 # Author: David Holmqvist <daae19@student.bth.se>
 
 CXX=g++-13
-CXXFLAGS=-std=c++17 -g -Wunused -Wall -Wunused -pg -g -O3
+# -O3 optimization for the compiler
+CXXFLAGS=-std=c++17 -g -Wunused -Wall -Wunused -pg -g -O3 -mavx
 
 all: pearson verify
 
