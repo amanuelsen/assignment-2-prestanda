@@ -116,7 +116,7 @@ double Vector::dot(const Vector& rhs) const
     __m256d acc = _mm256_setzero_pd();
 
     // increments of 4
-    for (; i <= size - 4; i += 4)
+    for (; i + 4 <= size; i += 4)
     {
         __m256d a = _mm256_loadu_pd(&data[i]);
         __m256d b = _mm256_loadu_pd(&rhs.data[i]);
