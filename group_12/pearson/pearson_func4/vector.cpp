@@ -65,34 +65,29 @@ double &Vector::operator[](unsigned i)
 }
 
 
-// SIMD optimization
+// loop unrolling
 double Vector::mean() const
 {
-    double result = 0.0;
+    double sum = 0.0, sum1 = 0.0, sum2 = 0.0, sum3 = 0.0;
     int i = 0;
 
-    // use AVX to process 4 doubles at a time
-    __m256d acc = _mm256_setzero_pd();
-
-    // increments of 4
-    for (; i <= size - 4; i += 4)
+    // process chunks of 4 elements at a time
+    for (; i + 4 <= size; i += 4)
     {
-        __m256d v = _mm256_loadu_pd(&data[i]);
-        acc = _mm256_add_pd(acc, v);
+        sum += data[i];
+        sum1 += data[i + 1];
+        sum2 += data[i + 2];
+        sum3 += data[i + 3];
     }
 
-    // horizontally add the 4 elements in acc
-    alignas(32) double temp[4];
-    _mm256_store_pd(temp, acc);
-    result = temp[0] + temp[1] + temp[2] + temp[3];
-
-    // handle remaining elements (outside the step of 4)
-    for (; i < size; ++i)
+    // handle remaining elements
+    for (; i < size; i++)
     {
-        result += data[i];
+        sum += data[i];
     }
 
-    return result / static_cast<double>(size);
+    double total_sum = sum + sum1 + sum2 + sum3;
+    return total_sum / static_cast<double>(size);
 }
 
 double Vector::magnitude() const
@@ -137,7 +132,7 @@ double Vector::dot(const Vector& rhs) const
     __m256d acc = _mm256_setzero_pd();
 
     // increments of 4
-    for (; i <= size - 4; i += 4)
+    for (; i + 4 <= size; i += 4)
     {
         __m256d a = _mm256_loadu_pd(&data[i]);
         __m256d b = _mm256_loadu_pd(&rhs.data[i]);
