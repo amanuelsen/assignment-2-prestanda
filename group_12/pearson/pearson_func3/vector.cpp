@@ -123,35 +123,14 @@ Vector Vector::operator-(double sub)
     return result;
 }
 
-// SIMD optimization
-double Vector::dot(const Vector& rhs) const
+double Vector::dot(Vector rhs) const
 {
-    double result = 0.0;
-    int i = 0;
+    double result{0};
 
-    // use AVX to process 4 at a time
-    __m256d acc = _mm256_setzero_pd();
-
-    // increments of 4
-    for (; i + 4 <= size; i += 4)
+    for (auto i{0}; i < size; i++)
     {
-        __m256d a = _mm256_loadu_pd(&data[i]);
-        __m256d b = _mm256_loadu_pd(&rhs.data[i]);
-        // store product in prod and add to acc
-        __m256d prod = _mm256_mul_pd(a, b);
-        acc = _mm256_add_pd(acc, prod);
-    }
-
-    // horizontally add the 4 elements in acc
-    alignas(32) double temp[4];
-    _mm256_store_pd(temp, acc);
-    result = temp[0] + temp[1] + temp[2] + temp[3];
-
-    // handle remaining elements if any exists (outside the step of 4)
-    for (; i < size; ++i)
-    {
-        result += data[i] * rhs.data[i];
+        result += data[i] * rhs[i];
     }
 
     return result;
-} 
+}

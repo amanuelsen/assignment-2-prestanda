@@ -20,7 +20,7 @@ public:
     double magnitude() const;
     double mean() const;
     double normalize() const;
-    double dot(const Vector& rhs) const;
+    double dot(Vector rhs) const;
 
     unsigned get_size() const;
     double* get_data();
