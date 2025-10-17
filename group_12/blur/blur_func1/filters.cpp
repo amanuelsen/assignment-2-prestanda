@@ -37,9 +37,9 @@ namespace Filter
     const auto y_size = dst.get_y_size();
 
     // First pass: horizontal blur for better cache locality according to how array is stored in memory
-    for (auto y = 0; y < y_size; y++)
+    for (auto x = 0; x < x_size; x++)
     {
-        for (auto x = 0; x < x_size; x++)
+        for (auto y = 0; y < y_size; y++)
         {
             double r = w[0] * dst.r(x, y);
             double g = w[0] * dst.g(x, y);

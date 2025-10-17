@@ -8,7 +8,7 @@ make > /dev/null 2>&1
 mkdir -p data_o
 
 images=("im1.ppm" "im2.ppm" "im3.ppm" "im4.ppm")
-threads=(1 2 4 8)
+threads=(2 4 8 16 32)
 
 # Run performance tests for different thread counts
 for img in "${images[@]}"; do
