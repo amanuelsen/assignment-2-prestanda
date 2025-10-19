@@ -3,7 +3,7 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -g -Wunused -Wall -Wunused -pg -g -O3
 
-all: blur
+all: blur blur_par verify
 
 blur: matrix ppm filters blur.cpp
 	$(CXX) $(CXXFLAGS) blur.cpp matrix.o ppm.o filters.o -o blur
@@ -16,6 +16,7 @@ matrix: matrix.hpp matrix.cpp
 
 ppm: ppm.hpp ppm.cpp
 	$(CXX) $(CXXFLAGS) -c ppm.cpp -o ppm.o
-
+verify: verify.c
+    $(CC) verify.c -o verify
 clean:
-	rm -rf blur *.ppm *.o *.dSYM 2> /dev/null
+	rm -rf verify blur *.ppm *.o *.dSYM 2> /dev/null

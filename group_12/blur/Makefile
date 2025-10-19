@@ -1,15 +1,21 @@
 # Author: David Holmqvist <daae19@student.bth.se>
 
-CXX=g++
-CXXFLAGS=-std=c++17 -g -Wunused -Wall -Wunused -pg -g -O3
+CXX = g++
+CXXFLAGS = -std=c++17 -g -Wunused -Wall -pg -O3
 
-all: blur
+all: blur blur_par verify
 
 blur: matrix ppm filters blur.cpp
 	$(CXX) $(CXXFLAGS) blur.cpp matrix.o ppm.o filters.o -o blur
 
+blur_par: matrix ppm filters_par blur_par.cpp
+	$(CXX) $(CXXFLAGS) blur_par.cpp matrix.o ppm.o filters_par.o -o blur_par
+
 filters: matrix filters.hpp filters.cpp
 	$(CXX) $(CXXFLAGS) -c filters.cpp -o filters.o
+
+filters_par: matrix filters_par.hpp filters_par.cpp
+	$(CXX) $(CXXFLAGS) -c filters_par.cpp -o filters_par.o
 
 matrix: matrix.hpp matrix.cpp
 	$(CXX) $(CXXFLAGS) -c matrix.cpp -o matrix.o
@@ -17,5 +23,9 @@ matrix: matrix.hpp matrix.cpp
 ppm: ppm.hpp ppm.cpp
 	$(CXX) $(CXXFLAGS) -c ppm.cpp -o ppm.o
 
+verify: verify.sh
+	chmod +x verify.sh
+	./verify.sh
+
 clean:
-	rm -rf blur *.ppm *.o *.dSYM 2> /dev/null
+	rm -rf blur blur_par verify *.ppm *.o *.dSYM 2> /dev/null
